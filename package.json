@@ -1,0 +1,34 @@
+{
+  "name": "eidos-miner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node index.js"
+  },
+  "author": {
+    "name": "Donjan"
+  },
+  "keywords": [
+    "eidos",
+    "miner"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donjan-deng/eidos-miner"
+  },
+  "dependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/node": "^7.7.0",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/runtime": "^7.7.2",
+    "babel-cli": "^6.26.0",
+    "colors": "^1.4.0",
+    "eosjs": "^16.0.9",
+    "moment": "^2.24.0",
+    "scatterjs-core": "^2.7.18",
+    "scatterjs-plugin-eosjs": "^1.5.1",
+    "tp-eosjs": "^1.6.2"
+  }
+}
