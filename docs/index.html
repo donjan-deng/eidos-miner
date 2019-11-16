@@ -99,10 +99,10 @@
                 $('#log').empty();
                 $('#log').append("<p>帐户:" + data.scatter_account.name + "</p>");
                 $('#log').append("<p>EIDOS:" + data.eidos + "</p>");
-                $('#log').append("<p>EIDOS:" + data.account.cpu_limit.used + '/' + data.account.cpu_limit.max + "</p>");
+                $('#log').append("<p>CPU:" + data.account.cpu_limit.used + '/' + data.account.cpu_limit.max + "</p>");
                 $('#log').append("<p>  </p>");
                 data.log.forEach(e => {
-                    $('#log').append("<p>EIDOS:" + e + "</p>");
+                    $('#log').append("<p>" + e + "</p>");
                 });
             }
         }
