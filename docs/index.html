@@ -63,16 +63,21 @@
         });
         function mining() {
             const transactionOptions = { authorization: [`${data.scatter_account.name}@${data.scatter_account.authority}`] };
-            eos.transfer(data.scatter_account.name, 'eidosonecoin', '0.0001 EOS', 'memo', transactionOptions).then(trx => {
+            eos.transfer(data.scatter_account.name, 'eidosonecoin', '0.0001 EOS', 'by https://github.com/donjan-deng/eidos-miner', transactionOptions).then(trx => {
                 addLog(moment().format('YYYY-MM-DD HH:mm') + ` 挖矿成功!,Transaction ID: ${trx.transaction_id}`);
                 setTimeout(mining, config.interval_second * 1000);
             }).catch(error => {
-                error = JSON.parse(error);
-                if (error.error && error.error.code == 3080004) {
-                    addLog(moment().format('YYYY-MM-DD HH:mm') + ' CPU已用完，' + config.cpu_wait_min + '分钟后继续...');
-                    setTimeout(mining, config.cpu_wait_min * 60 * 1000);
-                } else {
-                    addLog(error);
+                try {
+                    error = JSON.parse(error);
+                    if (error.error && error.error.code == 3080004) {
+                        addLog(moment().format('YYYY-MM-DD HH:mm') + ' CPU已用完，' + config.cpu_wait_min + '分钟后继续...');
+                        setTimeout(mining, config.cpu_wait_min * 60 * 1000);
+                    } else {
+                        addLog(error);
+                        setTimeout(mining, config.interval_second * 1000);
+                    }
+                } catch (ex) {
+                    addLog(ex.message);
                     setTimeout(mining, config.interval_second * 1000);
                 }
             });
