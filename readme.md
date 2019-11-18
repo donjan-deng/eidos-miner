@@ -17,6 +17,10 @@
 
 ### Windows
 
+安装scatter钱包,已有跳过
+
+下载地址：[https://get-scatter.com/download](https://get-scatter.com/download)
+
 安装nodejs,已有的跳过。
 
 下载地址：[http://nodejs.cn/download/](http://nodejs.cn/download/)
