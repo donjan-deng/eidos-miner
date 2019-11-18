@@ -2,9 +2,11 @@
 虽然已经有几款网页版的了，但并不适合长期运行，特别是需要挂在VPS里，所以就出现了这款控制台运行的。
 
 ## 环境需求
+
  nodejs >= 10 
 
  scatter >= 11 (网页版可在低版本运行) 
+ 
 ## 使用方法
 
 也有个简易的网页版打开即用:[https://donjan-deng.github.io/eidos-miner/](https://donjan-deng.github.io/eidos-miner/)
