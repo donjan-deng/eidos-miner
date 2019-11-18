@@ -101,6 +101,6 @@ function output() {
 function addLog(str) {
     data.log.push(str);
     if (data.log.length > config.log_max) {
-        data.log = data.log.slice(0, config.log_max);
+        data.log.splice(0, data.log.length - config.log_max);
     }
 }
