@@ -1,5 +1,5 @@
 const config = {
-    interval_second: 5,//挖一次间隔(秒),各位持币大佬别把间隔改太小了，给节点造成压力。
+    interval_second: 1,//挖一次间隔(秒)
     refresh_account_second: 5,//刷新用户信息间隔（秒）
     cpu_wait_min: 5,//CPU耗尽等待时间（分钟）
     log_max: 50,//保留多少行日志
