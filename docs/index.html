@@ -71,7 +71,7 @@
                     error = JSON.parse(error);
                     if (error.error && error.error.code == 3080004) {
                         addLog(moment().format('YYYY-MM-DD HH:mm') + ' CPU已用完，' + config.cpu_wait_min + '分钟后继续...');
-                        setTimeout(mining, config.cpu_wait_min * 60 * 1000);
+                        setTimeout(mining, config.cpu_wait_min * 1000);
                     } else {
                         addLog(error);
                         setTimeout(mining, config.interval_second * 1000);
