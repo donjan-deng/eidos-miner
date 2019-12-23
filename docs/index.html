@@ -1,20 +1,93 @@
 <!doctype html>
-<html lang="zh-cn">
+<html lang="en">
 
 <head>
-    <title>eidos空投矿机</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css">
+    <title>eidos miner</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1>eidos miner</h1>
+                <form>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">Account</label>
+                        <div class="col-10">
+                            <input type="text" name='account' readonly class="form-control-plaintext" value="loading">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">EIDOS</label>
+                        <div class="col-10">
+                            <input type="text" name='eidos' readonly class="form-control-plaintext" value="loading">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">CPU</label>
+                        <div class="col-10">
+                            <input type="text" name="cpu" readonly class="form-control-plaintext" value="loading">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">Interval Second</label>
+                        <div class="col-2">
+                            <input type="text" name="interval_second" class="form-control" value="1">
+                        </div>
+                        <label class="col-2 col-form-label">Refresh Account</label>
+                        <div class="col-2">
+                            <input type="text" name="refresh_account_second" class="form-control" value="5">
+                        </div>
+                        <label class="col-2 col-form-label">Cpu Wait Second</label>
+                        <div class="col-2">
+                            <input type="text" name="cpu_wait_second" class="form-control" value="300">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">Node</label>
+                        <div class="input-group col">
+                            <div class="input-group-prepend">
+                                <select class="form-control" name="protocol">
+                                    <option value="https">https://</option>
+                                    <option value="http">http://</option>
+                                </select>
+                            </div>
+                            <input type="text" name="host" class="form-control" placeholder="host">
+                            <div class="input-group-append">
+                                <input type="text" name="port" class="form-control" placeholder="port" value="443">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id='btn-start' class="btn btn-primary btn-lg">Start</button>
+                    <button type="button" id='btn-stop' class="btn btn-primary btn-lg" disabled>Stop</button>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <h2>Log</h2>
+                <div class="log bg-dark">
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
     <script src="scatter.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
     <script>
+        let accountTimer, mineTimer;
         const config = {
             interval_second: 1,//挖一次间隔(秒)
             refresh_account_second: 5,//刷新用户信息间隔（秒）
-            cpu_wait_min: 5,//CPU耗尽等待时间（分钟）
-            log_max: 20,//保留多少行日志
-            nodes: [ //可用节点
+            cpu_wait_second: 5,//CPU耗尽等待时间
+            log_max: 5,
+            nodes: [
                 {
                     protocol: 'https',
                     host: 'nodes.get-scatter.com',
@@ -41,43 +114,68 @@
             eidos: 0,
             log: []
         }
-        let network = config.nodes[Math.floor((Math.random() * config.nodes.length))];
-        network.blockchain = 'eos';
-        network.chainId = 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906';
         let eos;
-        scatter.connect("eidos-miner").then(function (connected) {
-            console.log('connected', connected)
-            if (connected) {
-                eos = scatter.eos(network, Eos);
-                console.log('id before', scatter.identity)
-                scatter.getIdentity({ accounts: [network] }).then(function (id) {
-                    data.scatter_account = id.accounts.find(function (x) { return x.blockchain === 'eos' });
-                    mining();
-                    getAccount();
-                }).catch(function (e) {
-                    console.log(e);
-                });
-            }
-        }).catch(function (x) {
-            console.log('x', x);
-        });
+        let network;
+        $(function () {
+            const node = config.nodes[3];
+            $('[name="host"]', $('form')).val(node.host);
+            $('#btn-start').click(function () {
+                start();
+            });
+            $('#btn-stop').click(function () {
+                stop();
+            });
+        })
+        function start() {
+            $('#btn-start').html(`<span class="spinner-border spinner-border-sm"></span>Mining...`);
+            $('#btn-stop').removeAttr("disabled");
+            $('#btn-start').attr("disabled", "disabled");
+            config.interval_second = parseInt($('[name="interval_second"]', $('form')).val());
+            config.refresh_account_second = parseInt($('[name="refresh_account_second"]', $('form')).val());
+            config.cpu_wait_second = parseInt($('[name="cpu_wait_second"]', $('form')).val());
+            network = {
+                protocol: $('[name="protocol"]', $('form')).val(),
+                host: $('[name="host"]', $('form')).val(),
+                port: $('[name="port"]', $('form')).val(),
+                blockchain: 'eos',
+                chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
+            };
+            scatter.connect("eidos-miner").then(function (connected) {
+                addLog(getTimeStr() + ':connected');
+                if (connected) {
+                    eos = scatter.eos(network, Eos);
+                    scatter.getIdentity({ accounts: [network] }).then(function (id) {
+                        data.scatter_account = id.accounts.find(function (x) { return x.blockchain === 'eos' });
+                        mining();
+                        getAccount();
+                    }).catch(function (e) {
+                        addLog(getTimeStr() + ':' + JSON.stringify(e));
+                    });
+                }
+            }).catch(function (x) {
+                addLog(getTimeStr() + ':' + JSON.stringify(x));
+            });
+        }
         function mining() {
             const transactionOptions = { authorization: [`${data.scatter_account.name}@${data.scatter_account.authority}`] };
             eos.transfer(data.scatter_account.name, 'eidosonecoin', '0.0001 EOS', 'by https://github.com/donjan-deng/eidos-miner', transactionOptions).then(trx => {
-                addLog(moment().format('YYYY-MM-DD HH:mm') + ` 挖矿成功!,Transaction ID: ${trx.transaction_id}`);
+                addLog(getTimeStr() + ` success!,Transaction ID: ${trx.transaction_id}`);
                 setTimeout(mining, config.interval_second * 1000);
             }).catch(error => {
                 try {
                     error = JSON.parse(error);
                     if (error.error && error.error.code == 3080004) {
-                        addLog(moment().format('YYYY-MM-DD HH:mm') + ' CPU已用完，' + config.cpu_wait_min + '分钟后继续...');
-                        setTimeout(mining, config.cpu_wait_min * 1000);
+                        addLog(getTimeStr() + `: waiting for ${config.cpu_wait_second} seconds...`);
+                        setTimeout(mining, config.cpu_wait_second * 1000);
+                    } else if (error.error) {
+                        addLog(getTimeStr() + ':' + error.error);
+                        setTimeout(mining, config.interval_second * 1000);
                     } else {
-                        addLog(error);
+                        addLog(getTimeStr() + ':' + JSON.stringify(error));
                         setTimeout(mining, config.interval_second * 1000);
                     }
                 } catch (ex) {
-                    addLog(ex.message);
+                    addLog(getTimeStr() + ':' + JSON.stringify(ex));
                     setTimeout(mining, config.interval_second * 1000);
                 }
             });
@@ -93,39 +191,41 @@
         function getEidos() {
             eos.getCurrencyBalance('eidosonecoin', data.scatter_account.name, 'EIDOS').then(result => {
                 data.eidos = result[0];
-                output();
+                $('[name="account"]', $('form')).val(data.scatter_account.name);
+                $('[name="eidos"]', $('form')).val(data.eidos);
+                $('[name="cpu"]', $('form')).val(data.account.cpu_limit.used + '/' + data.account.cpu_limit.max);
                 setTimeout(getAccount, config.refresh_account_second * 1000);
             }).catch(error => {
                 setTimeout(getAccount, config.refresh_account_second * 1000);
             });
         }
-        function output() {
-            if (data.account) {
-                $('#log').empty();
-                $('#log').append("<p>帐户:" + data.scatter_account.name + "</p>");
-                $('#log').append("<p>EIDOS:" + data.eidos + "</p>");
-                $('#log').append("<p>CPU:" + data.account.cpu_limit.used + '/' + data.account.cpu_limit.max + "</p>");
-                $('#log').append("<p>  </p>");
-                data.log.forEach(e => {
-                    $('#log').append("<p>" + e + "</p>");
-                });
+        function stop() {
+            location.reload();
+            return;
+            if (accountTimer) {
+                window.clearInterval(accountTimer);
             }
+            if (mineTimer) {
+                window.clearInterval(mineTimer);
+            }
+            $('#btn-stop').attr("disabled", "disabled");
+            $('#btn-start').removeAttr('disabled');
+            $('#btn-start').html(`start`);
         }
         function addLog(str) {
             data.log.push(str);
             if (data.log.length > config.log_max) {
                 data.log.splice(0, data.log.length - config.log_max);
             }
+            $('.log').empty();
+            data.log.forEach(e => {
+                $('.log').append(" <p class='text-light'>" + e + "</p>");
+            });
+        }
+        function getTimeStr() {
+            return moment().format('YYYY-MM-DD hh:mm:ss');
         }
     </script>
-</head>
-
-<body>
-    <h1>eidos空投矿机</h1>
-    <h2>运行日志</h2>
-    <div id='log'>
-
-    </div>
 </body>
 
 </html>
