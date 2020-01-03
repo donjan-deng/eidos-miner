@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.9/lib/eos.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/scatter-js@2.5.2/dist/scatter.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
@@ -89,11 +89,6 @@
             cpu_wait_second: 5,//CPU耗尽等待时间
             log_max: 5,
             nodes: [
-                {
-                    protocol: 'https',
-                    host: 'nodes.get-scatter.com',
-                    port: 443
-                },
                 {
                     protocol: 'https',
                     host: 'fn001.eossv.org',
@@ -126,14 +121,6 @@
                     protocol: 'https',
                     host: 'mainnet.meet.one',
                     port: 443
-                }, {
-                    protocol: 'https',
-                    host: 'api.helloeos.com.cn',
-                    port: 443
-                }, {
-                    protocol: 'http',
-                    host: 'api-mainnet.starteos.io',
-                    port: 80
                 }, {
                     protocol: 'https',
                     host: 'mainnet.eosio.sg',
