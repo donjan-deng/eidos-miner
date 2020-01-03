@@ -35,7 +35,7 @@
                     <div class="form-group row">
                         <label class="col-2 col-form-label">Interval Second</label>
                         <div class="col-2">
-                            <input type="text" name="interval_second" class="form-control" value="1">
+                            <input type="text" name="interval_second" class="form-control" value="10">
                         </div>
                         <label class="col-2 col-form-label">Refresh Account</label>
                         <div class="col-2">
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.9/lib/eos.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/scatter-js@2.5.2/dist/scatter.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
@@ -167,7 +167,8 @@
                     eos = scatter.eos(network, Eos);
                     scatter.getIdentity({ accounts: [network] }).then(function (id) {
                         data.scatter_account = id.accounts.find(function (x) { return x.blockchain === 'eos' });
-                        mining();
+                        //mining();
+                        setInterval(startMining, config.interval_second * 1000);
                         getAccount();
                     }).catch(function (e) {
                         addLog(getTimeStr() + ':' + JSON.stringify(Object.values(e)));
@@ -176,6 +177,13 @@
             }).catch(function (x) {
                 addLog(getTimeStr() + ':' + JSON.stringify(Object.values(x)));
             });
+        }
+        function startMining() {
+            eos = scatter.eos(getRandomNode(), Eos);
+            const transactionOptions = { authorization: [`${data.scatter_account.name}@${data.scatter_account.authority}`] };
+            eos.transfer(data.scatter_account.name, 'eidosonecoin', '0.0001 EOS', 'by https://github.com/donjan-deng/eidos-miner', transactionOptions).then(trx => {
+                addLog(getTimeStr() + ` success!,Transaction ID: ${trx.transaction_id}`);
+            })
         }
         function mining() {
             const transactionOptions = { authorization: [`${data.scatter_account.name}@${data.scatter_account.authority}`] };
