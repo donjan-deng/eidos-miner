@@ -46,7 +46,7 @@
                             <input type="text" name="cpu_wait_second" class="form-control" value="300">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <!-- <div class="form-group row">
                         <label class="col-2 col-form-label">Node</label>
                         <div class="input-group col">
                             <div class="input-group-prepend">
@@ -60,7 +60,7 @@
                                 <input type="text" name="port" class="form-control" placeholder="port" value="443">
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <button type="button" id='btn-start' class="btn btn-primary btn-lg">Start</button>
                     <button type="button" id='btn-stop' class="btn btn-primary btn-lg" disabled>Stop</button>
                 </form>
@@ -82,6 +82,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
     <script>
         let accountTimer, mineTimer;
+        Object.values = Object.values || Object.keys(obj).map(function (key) { return obj[key]; });
         const config = {
             interval_second: 1,//挖一次间隔(秒)
             refresh_account_second: 5,//刷新用户信息间隔（秒）
@@ -95,15 +96,47 @@
                 },
                 {
                     protocol: 'https',
-                    host: 'eos.newdex.one',
+                    host: 'fn001.eossv.org',
                     port: 443
                 }, {
                     protocol: 'https',
-                    host: 'api.eosdetroit.io',
+                    host: 'api.eoseoul.io',
                     port: 443
                 }, {
                     protocol: 'https',
-                    host: 'api.main.alohaeos.com',
+                    host: 'api.redpacketeos.com',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'api.eosn.io',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'api.eosn.io',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'api1.eosasia.one',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'node1.zbeos.com',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'mainnet.meet.one',
+                    port: 443
+                }, {
+                    protocol: 'https',
+                    host: 'api.helloeos.com.cn',
+                    port: 443
+                }, {
+                    protocol: 'http',
+                    host: 'api-mainnet.starteos.io',
+                    port: 80
+                }, {
+                    protocol: 'https',
+                    host: 'mainnet.eosio.sg',
                     port: 443
                 }
             ]
@@ -127,19 +160,20 @@
             });
         })
         function start() {
-            $('#btn-start').html(`<span class="spinner-border spinner-border-sm"></span>Mining...`);
+            $('#btn-start').html(`Mining...`);
             $('#btn-stop').removeAttr("disabled");
             $('#btn-start').attr("disabled", "disabled");
             config.interval_second = parseInt($('[name="interval_second"]', $('form')).val());
             config.refresh_account_second = parseInt($('[name="refresh_account_second"]', $('form')).val());
             config.cpu_wait_second = parseInt($('[name="cpu_wait_second"]', $('form')).val());
-            network = {
-                protocol: $('[name="protocol"]', $('form')).val(),
-                host: $('[name="host"]', $('form')).val(),
-                port: $('[name="port"]', $('form')).val(),
-                blockchain: 'eos',
-                chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
-            };
+            // network = {
+            //     protocol: $('[name="protocol"]', $('form')).val(),
+            //     host: $('[name="host"]', $('form')).val(),
+            //     port: $('[name="port"]', $('form')).val(),
+            //     blockchain: 'eos',
+            //     chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
+            // };
+            network = getRandomNode();
             scatter.connect("eidos-miner").then(function (connected) {
                 addLog(getTimeStr() + ':connected');
                 if (connected) {
@@ -149,35 +183,34 @@
                         mining();
                         getAccount();
                     }).catch(function (e) {
-                        addLog(getTimeStr() + ':' + JSON.stringify(e));
+                        addLog(getTimeStr() + ':' + JSON.stringify(Object.values(e)));
                     });
                 }
             }).catch(function (x) {
-                addLog(getTimeStr() + ':' + JSON.stringify(x));
+                addLog(getTimeStr() + ':' + JSON.stringify(Object.values(x)));
             });
         }
         function mining() {
             const transactionOptions = { authorization: [`${data.scatter_account.name}@${data.scatter_account.authority}`] };
             eos.transfer(data.scatter_account.name, 'eidosonecoin', '0.0001 EOS', 'by https://github.com/donjan-deng/eidos-miner', transactionOptions).then(trx => {
                 addLog(getTimeStr() + ` success!,Transaction ID: ${trx.transaction_id}`);
-                setTimeout(mining, config.interval_second * 1000);
+                return config.interval_second;
             }).catch(error => {
                 try {
-                    error = JSON.parse(error);
-                    if (error.error && error.error.code == 3080004) {
+                    err = JSON.parse(error);
+                    if (err.error && err.error.code == 3080004) {
                         addLog(getTimeStr() + `: waiting for ${config.cpu_wait_second} seconds...`);
-                        setTimeout(mining, config.cpu_wait_second * 1000);
-                    } else if (error.error) {
-                        addLog(getTimeStr() + ':' + error.error);
-                        setTimeout(mining, config.interval_second * 1000);
+                        return config.cpu_wait_second;
                     } else {
-                        addLog(getTimeStr() + ':' + JSON.stringify(error));
-                        setTimeout(mining, config.interval_second * 1000);
+                        return config.interval_second;
                     }
                 } catch (ex) {
-                    addLog(getTimeStr() + ':' + JSON.stringify(ex));
-                    setTimeout(mining, config.interval_second * 1000);
+                    addLog(getTimeStr() + ':' + JSON.stringify(Object.values(error)));
+                    return config.interval_second;
                 }
+            }).then(second => {
+                eos = scatter.eos(getRandomNode(), Eos);
+                setTimeout(mining, second * 1000);
             });
         }
         function getAccount() {
@@ -224,6 +257,12 @@
         }
         function getTimeStr() {
             return moment().format('YYYY-MM-DD hh:mm:ss');
+        }
+        function getRandomNode() {
+            let node = config.nodes[Math.floor((Math.random() * config.nodes.length))];
+            node.blockchain = 'eos';
+            node.chainId = 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906';
+            return node;
         }
     </script>
 </body>
